@@ -1533,13 +1533,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "recipie-book"
+name = "recipie_book"
 version = "0.1.0"
 dependencies = [
  "dotenv",
  "mongodb",
  "rocket",
  "serde",
+ "tokio",
 ]
 
 [[package]]

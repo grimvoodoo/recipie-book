@@ -27,8 +27,16 @@ impl MongoRepo {
     }
 
     pub fn create_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
+        let id = {
+            if new_user.id == None {
+                None
+            } else {
+                new_user.id
+            }
+        };
+
         let new_doc = User {
-            id: None,
+            id,
             name: new_user.name,
             location: new_user.location,
             title: new_user.title,
