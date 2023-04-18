@@ -3,7 +3,7 @@ extern crate dotenv;
 use crate::models::recipe_model::Recipes;
 use dotenv::dotenv;
 use mongodb::{
-    bson::{doc, extjson::de::Error, oid::ObjectId},
+    bson::{doc, extjson::de::Error},
     results::{DeleteResult, InsertOneResult, UpdateResult},
     sync::{Client, Collection},
 };
@@ -60,25 +60,6 @@ impl MongoRepo {
 
     pub fn get_recipe(&self, name: &String, test: bool) -> Result<Recipes, Error> {
         // let obj_name = ObjectId::parse_str(name).unwrap();
-        let filter = doc! {"name": name};
-        if test == true {
-            let recipe_detail = self
-                .test_col
-                .find_one(filter, None)
-                .ok()
-                .expect("Error getting recipe's detail");
-            Ok(recipe_detail.unwrap())
-        } else {
-            let recipe_detail = self
-                .col
-                .find_one(filter, None)
-                .ok()
-                .expect("Error getting recipe's detail");
-            Ok(recipe_detail.unwrap())
-        }
-    }
-
-    fn get_recipe_by_name(&self, name: &String, test: bool) -> Result<Recipes, Error> {
         let filter = doc! {"name": name};
         if test == true {
             let recipe_detail = self
