@@ -8,13 +8,7 @@ pub fn create_recipe(
     new_recipe: Json<Recipes>,
     test: bool,
 ) -> Result<Json<InsertOneResult>, Status> {
-    let data = Recipes {
-        id: None,
-        name: new_recipe.name.clone(),
-        ingredients: new_recipe.ingredients.clone(),
-        instructions: new_recipe.instructions.clone(),
-    };
-    let recipe_detail = db.create_recipe(data, test);
+    let recipe_detail = db.create_recipe(new_recipe.into_inner(), test);
     match recipe_detail {
         Ok(recipe) => Ok(Json(recipe)),
         Err(_) => Err(Status::InternalServerError),

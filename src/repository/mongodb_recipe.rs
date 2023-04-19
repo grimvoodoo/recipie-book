@@ -3,7 +3,7 @@ extern crate dotenv;
 use crate::models::recipe_model::Recipes;
 use dotenv::dotenv;
 use mongodb::{
-    bson::{doc, extjson::de::Error},
+    bson::{doc, extjson::de::Error, Bson},
     results::{DeleteResult, InsertOneResult, UpdateResult},
     sync::{Client, Collection},
 };
@@ -35,23 +35,17 @@ impl MongoRepo {
     }
 
     pub fn create_recipe(&self, new_recipe: Recipes, test: bool) -> Result<InsertOneResult, Error> {
-        let new_doc = Recipes {
-            id: None,
-            name: new_recipe.name,
-            ingredients: new_recipe.ingredients,
-            instructions: new_recipe.instructions,
-        };
         if test == true {
             let recipe = self
                 .test_col
-                .insert_one(new_doc, None)
+                .insert_one(new_recipe, None)
                 .ok()
                 .expect("Error creating recipe");
             Ok(recipe)
         } else {
             let recipe = self
                 .col
-                .insert_one(new_doc, None)
+                .insert_one(new_recipe, None)
                 .ok()
                 .expect("Error creating recipe");
             Ok(recipe)
@@ -84,14 +78,28 @@ impl MongoRepo {
         new_recipe: Recipes,
         test: bool,
     ) -> Result<UpdateResult, Error> {
-        // let obj_name = ObjectId::parse_str(name).unwrap();
         let filter = doc! {"name": name};
+        let ingredients_bson: Vec<Bson> = new_recipe
+            .ingredients
+            .into_iter()
+            .map(|ingredient| {
+                let mut doc = doc! {
+                    "name": ingredient.name,
+                    "quantity": ingredient.quantity,
+                };
+                if let Some(unit_value) = ingredient.unit {
+                    doc.insert("unit", unit_value);
+                }
+                doc
+            })
+            .map(Bson::Document)
+            .collect();
         let new_doc = doc! {
             "$set":
                 {
                     "id": new_recipe.id,
                     "name": new_recipe.name,
-                    "ingredients": new_recipe.ingredients,
+                    "ingredients": ingredients_bson,
                     "instructions": new_recipe.instructions,
                 },
         };
