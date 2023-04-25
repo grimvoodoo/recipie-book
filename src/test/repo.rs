@@ -1,108 +1,90 @@
-#[cfg(test)]
-pub mod tests {
-    use crate::models::recipe_model::Recipes;
-    use crate::MongoRepo;
+use crate::{models::recipe_model::Recipes, repository::mongodb_recipe::MongoRepo};
 
-    use super::*;
+fn test_create_recipe() {
+    let mongo_repo = MongoRepo::init();
 
-    use mockall::{automock, predicate::*};
+    let new_recipe = Recipes::default();
+    let result = mongo_repo.create_recipe(new_recipe, true);
 
-    #[cfg_attr(test, automock)]
-    pub trait Database {
-        fn create_new_recipe(&self, query: String);
-    }
-
-    pub fn get_recipe(db: Box<dyn Database>, name: String) {}
-
-    pub fn create_test_recipe() -> Recipes {
-        recipe {
-            id: None,
-            name: "Toad in the hole".to_string(),
-            ingredients: vec!["Flour", "Eggs", "Milk", "Sausages"],
-            instructions: vec!["add the flour, eggs, milk into a mixing bowl", "mix by hand or with a stand mixer until it forms a smooth batter", "put the batter in the fridge for 15 mins", "while the batter is cooling fry the sausages in a frying pan until cooked through and browned evenly", "put the sausages into an oven proof dish with sides higher than the sausages", "pour the batter over the sausages until they are just covered", "put in the oven and cook for 35-35 mins"],
+    match result {
+        Ok(insert_result) => {
+            println!("Inserted recipe with ID: {:?}", insert_result.inserted_id);
+        }
+        Err(err) => {
+            panic!("Error creating recipe: {}", err);
         }
     }
+}
 
-    // #[post("/recipe/<test>", data = "<new_recipe>")]
-    pub fn create_recipe(db: &State<MongoRepo>) {
-        let data = test_recipe();
-        let test = true;
-        let recipe_detail = db.create_recipe(data, test);
-        assert_eq!(recipe_detail.status, 200);
-        match recipe_detail {
-            Ok(recipe) => Ok(Json(recipe)),
-            Err(_) => Err(Status::InternalServerError),
-        };
+pub fn test_get_recipe() {
+    let mongo_repo = MongoRepo::init();
+
+    let result = mongo_repo.get_recipe(&String::from("Pancakes"), true);
+
+    match result {
+        Ok(get_result) => {
+            println!("Get Recipe with name: {:?}", get_result);
+        }
+        Err(err) => {
+            panic!("Error creating recipe: {}", err);
+        }
     }
+}
 
-    // #[test]
-    // fn test_create_recipe() {
-    //     let mock_repo = Arc::new(MockRepo::new());
-    //     let test_recipe = test_recipe();
+pub fn test_get_all_recipes() {
+    let mongo_repo = MongoRepo::init();
 
-    //     let result = mock_repo.create_recipe(test_recipe).unwrap();
+    let result = mongo_repo.get_all_recipes(true);
 
-    //     if let CustomInsertOneResult::Mock(_) = result {
-    //         // Test passed, as the result is the Mock variant
-    //     } else {
-    //         panic!("Expected Mock variant");
-    //     }
-    // }
+    match result {
+        Ok(get_result) => {
+            println!("Get all recipes: {:?}", get_result[0]);
+        }
+        Err(err) => {
+            panic!("Error creating recipe: {}", err);
+        }
+    }
+}
 
-    // #[test]
-    // fn test_get_recipe() {
-    //     let mock_repo = Arc::new(MockRepo::new());
-    //     let test_recipe = test_recipe();
-    //     let recipe_id = test_recipe.id.clone().unwrap().to_string();
+pub fn test_update_recipe() {
+    let mongo_repo = MongoRepo::init();
 
-    //     mock_repo.recipes.lock().unwrap().push(test_recipe);
+    let updated_recipe = Recipes::default();
+    let updated_recipe = Recipes {
+        name: String::from("Toad in the hole"),
+        ..updated_recipe
+    };
+    let result = mongo_repo.update_recipe(&String::from("Pancakes"), updated_recipe, true);
 
-    //     let result = mock_repo.get_recipe(&recipe_id).unwrap();
+    match result {
+        Ok(update_result) => {
+            println!("updated name to: {:?}", update_result);
+        }
+        Err(err) => {
+            panic!("Error creating recipe: {}", err);
+        }
+    }
+}
 
-    //     assert_eq!(result.id.unwrap().to_string(), recipe_id);
-    // }
+pub fn delete_recipe() {
+    let mongo_repo = MongoRepo::init();
 
-    // #[test]
-    // fn test_update_recipe() {
-    //     let mock_repo = Arc::new(MockRepo::new());
-    //     let mut test_recipe = test_recipe();
-    //     let recipe_id = test_recipe.id.clone().unwrap().to_string();
+    let result = mongo_repo.delete_recipe(&String::from("Toad in the hole"), true);
 
-    //     mock_repo.recipes.lock().unwrap().push(test_recipe.clone());
-
-    //     test_recipe.title = "Senior Software Developer".to_string();
-    //     let result = mock_repo.update_recipe(&recipe_id, test_recipe).unwrap();
-    //     let result = result.downcast_ref::<MockUpdateResult>().unwrap();
-
-    //     assert_eq!(result.matched_count, 1);
-    //     assert_eq!(result.modified_count, 1);
-    // }
-
-    // #[test]
-    // fn test_delete_recipe() {
-    //     let mock_repo = Arc::new(MockRepo::new());
-    //     let test_recipe = test_recipe();
-    //     let recipe_id = test_recipe.id.clone().unwrap().to_string();
-
-    //     mock_repo.recipes.lock().unwrap().push(test_recipe);
-
-    //     let result = mock_repo.delete_recipe(&recipe_id).unwrap();
-    //     let result = result.downcast_ref::<MockDeleteResult>().unwrap();
-
-    //     assert_eq!(result.deleted_count, 1);
-    // }
-
-    // #[test]
-    // fn test_get_all_recipes() {
-    //     let mock_repo = Arc::new(MockRepo::new());
-    //     let test_recipe1 = test_recipe();
-    //     let test_recipe2 = test_recipe();
-
-    //     mock_repo.recipes.lock().unwrap().push(test_recipe1);
-    //     mock_repo.recipes.lock().unwrap().push(test_recipe2);
-
-    //     let result = mock_repo.get_all_recipes().unwrap();
-
-    //     assert_eq!(result.len(), 2);
-    // }
+    match result {
+        Ok(delete_result) => {
+            println!("deleted recipe: {:?}", delete_result);
+        }
+        Err(err) => {
+            panic!("Error creating recipe: {}", err);
+        }
+    }
+}
+#[test]
+pub fn crud_test() {
+    test_create_recipe();
+    test_get_recipe();
+    test_get_all_recipes();
+    test_update_recipe();
+    delete_recipe();
 }
