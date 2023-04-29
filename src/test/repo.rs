@@ -80,6 +80,7 @@ pub fn delete_recipe() {
         }
     }
 }
+
 #[test]
 pub fn crud_test() {
     test_create_recipe();
